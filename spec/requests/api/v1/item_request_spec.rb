@@ -38,5 +38,36 @@ RSpec.describe "Items API" do
       expect(item_data[:data][:attributes][:name]).to be_an(String)
       expect(item_data[:data][:attributes][:name]).to eq(item1.name)
     end
+
+    it "can create an item" do
+      merchant_id = create(:merchant).id
+      item_params = ({
+        name: "Keyboard",
+        description: "Best mechanical keyboard ever.",
+        unit_price: 100.00,
+        merchant_id: merchant_id
+      })
+      header = {"CONTENT_TYPE" => "application/json"}
+
+      post "/api/v1/items", headers: header, params: JSON.generate(item: item_params)
+      expect(response).to be_successful
+
+      item_data = JSON.parse(response.body, symbolize_names: true)[:data]
+
+      expect(item_data).to have_key(:id)
+      expect(item_data[:id].to_i).to be_an(Integer)
+      expect(item_data).to have_key(:type)
+      expect(item_data[:type]).to eq("item")
+
+      expect(item_data).to have_key(:attributes)
+      expect(item_data[:attributes]).to have_key(:name)
+      expect(item_data[:attributes][:name]).to eq("Keyboard")
+      expect(item_data[:attributes]).to have_key(:description)
+      expect(item_data[:attributes][:description]).to eq("Best mechanical keyboard ever.")
+      expect(item_data[:attributes]).to have_key(:unit_price)
+      expect(item_data[:attributes][:unit_price]).to eq(100.00)
+      expect(item_data[:attributes]).to have_key(:merchant_id)
+      expect(item_data[:attributes][:merchant_id]).to eq(merchant_id)
+    end
   end
 end
