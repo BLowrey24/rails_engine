@@ -102,10 +102,60 @@ RSpec.describe "Items API" do
 
       expect(merchant.items.count).to eq(2)
 
-      delete api_v1_item_path(item1.id)
+      delete "/api/v1/items/#{item1.id}"
       expect(response).to be_successful
       expect(response.status).to eq(200)
       expect(merchant.items.count).to eq(1)
+    end
+  end
+
+  describe "Sad Path" do
+    it "returns an error if the item does not exist" do
+      get "/api/v1/items/101"
+      expect(response).to_not be_successful
+      expect(response.status).to eq(404)
+
+      error = JSON.parse(response.body, symbolize_names: true)
+
+      expect(error).to have_key(:errors)
+      expect(error[:errors]).to be_an(Array)
+      expect(error[:errors][0]).to have_key(:detail)
+      expect(error[:errors][0][:detail]).to eq("Item not found.")
+    end
+
+    it "cannot update an item that does not exist" do
+      merchant_id = create(:merchant).id
+      item_params = ({
+        name: "Keyboard",
+        description: "Best mechanical keyboard ever.",
+        unit_price: 100.00,
+        merchant_id: merchant_id
+        })
+      header = {"CONTENT_TYPE" => "application/json"}
+
+      patch "/api/v1/items/101", headers: header, params: JSON.generate(item: item_params)
+      expect(response).to_not be_successful
+      expect(response.status).to eq(404)
+
+      error = JSON.parse(response.body, symbolize_names: true)
+
+      expect(error).to have_key(:errors)
+      expect(error[:errors]).to be_an(Array)
+      expect(error[:errors][0]).to have_key(:detail)
+      expect(error[:errors][0][:detail]).to eq("Item not found.")
+    end
+
+    it "cannot delete an item that does not exist" do
+      delete "/api/v1/items/101"
+      expect(response).to_not be_successful
+      expect(response.status).to eq(404)
+
+      error = JSON.parse(response.body, symbolize_names: true)
+
+      expect(error).to have_key(:errors)
+      expect(error[:errors]).to be_an(Array)
+      expect(error[:errors][0]).to have_key(:detail)
+      expect(error[:errors][0][:detail]).to eq("Item not found.")
     end
   end
 end
