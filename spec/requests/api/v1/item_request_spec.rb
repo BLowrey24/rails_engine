@@ -8,6 +8,7 @@ RSpec.describe "Items API" do
 
       get "/api/v1/items"
       expect(response).to be_successful
+      expect(response.status).to eq(200)
 
       items = JSON.parse(response.body, symbolize_names: true)[:data]
 
@@ -28,6 +29,7 @@ RSpec.describe "Items API" do
 
       get "/api/v1/items/#{item1.id}"
       expect(response).to be_successful
+      expect(response.status).to eq(200)
 
       item_data = JSON.parse(response.body, symbolize_names: true)
 
@@ -46,11 +48,12 @@ RSpec.describe "Items API" do
         description: "Best mechanical keyboard ever.",
         unit_price: 100.00,
         merchant_id: merchant_id
-      })
+        })
       header = {"CONTENT_TYPE" => "application/json"}
 
       post "/api/v1/items", headers: header, params: JSON.generate(item: item_params)
       expect(response).to be_successful
+      expect(response.status).to eq(201)
 
       item_data = JSON.parse(response.body, symbolize_names: true)[:data]
 
@@ -83,12 +86,26 @@ RSpec.describe "Items API" do
 
         patch "/api/v1/items/#{item.id}", headers: header, params: JSON.generate(item: item_params)
         expect(response).to be_successful
+        expect(response.status).to eq(200)
 
         updated_item = Item.last
         expect(updated_item.name).to eq("Keyboard")
         expect(updated_item.description).to eq("Best mechanical keyboard ever.")
         expect(updated_item.unit_price).to eq(100.00)
         expect(updated_item.merchant_id).to eq(merchant_id)
+    end
+
+    it "can delete a item" do
+      merchant = create(:merchant)
+      item1 = create(:item, merchant_id: merchant.id)
+      item2 = create(:item, merchant_id: merchant.id)
+
+      expect(merchant.items.count).to eq(2)
+
+      delete api_v1_item_path(item1.id)
+      expect(response).to be_successful
+      expect(response.status).to eq(200)
+      expect(merchant.items.count).to eq(1)
     end
   end
 end

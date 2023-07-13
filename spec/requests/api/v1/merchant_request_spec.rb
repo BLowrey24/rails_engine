@@ -7,6 +7,7 @@ RSpec.describe "Merchants API" do
 
       get '/api/v1/merchants'
       expect(response).to be_successful
+      expect(response.status).to eq(200)
 
       merchants_data = JSON.parse(response.body, symbolize_names: true)
       merchants = merchants_data[:data]
@@ -24,6 +25,7 @@ RSpec.describe "Merchants API" do
       merchant = create(:merchant)
       get "/api/v1/merchants/#{merchant.id}"
       expect(response).to be_successful
+      expect(response.status).to eq(200)
 
       merchant_response = JSON.parse(response.body, symbolize_names: true)
       expect(merchant_response[:data]).to have_key(:id)

@@ -6,6 +6,9 @@ RSpec.describe "Merchant Items API" do
     create_list(:item, 5, merchant_id: merchant.id)
 
     get "/api/v1/merchants/#{merchant.id}/items"
+    expect(response).to be_successful
+    expect(response.status).to eq(200)
+
     items = JSON.parse(response.body, symbolize_names: true)
 
     expect(response.status).to eq(200)
