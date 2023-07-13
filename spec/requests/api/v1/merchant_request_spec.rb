@@ -34,4 +34,19 @@ RSpec.describe "Merchants API" do
       expect(merchant_response[:data][:attributes][:name]).to eq(merchant.name)
     end
   end
+
+  describe "Sad Path" do
+    it "cannot get merchant by ID if it does not match one in the DB" do
+      get "/api/v1/merchants/101"
+      expect(response).to_not be_successful
+      expect(response.status).to eq(404)
+
+      error = JSON.parse(response.body, symbolize_names: true)
+
+      expect(error).to have_key(:errors)
+      expect(error[:errors]).to be_an(Array)
+      expect(error[:errors][0]).to have_key(:detail)
+      expect(error[:errors][0][:detail]).to eq("Merchant not found.")
+    end
+  end
 end
