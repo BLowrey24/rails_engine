@@ -69,5 +69,26 @@ RSpec.describe "Items API" do
       expect(item_data[:attributes]).to have_key(:merchant_id)
       expect(item_data[:attributes][:merchant_id]).to eq(merchant_id)
     end
+
+    it "can edit an already existing item" do
+      merchant_id = create(:merchant).id
+      item = create(:item, merchant_id: merchant_id)
+      item_params = ({
+        name: "Keyboard",
+        description: "Best mechanical keyboard ever.",
+        unit_price: 100.00,
+        merchant_id: merchant_id
+        })
+        header = {"CONTENT_TYPE" => "application/json"}
+
+        patch "/api/v1/items/#{item.id}", headers: header, params: JSON.generate(item: item_params)
+        expect(response).to be_successful
+
+        updated_item = Item.last
+        expect(updated_item.name).to eq("Keyboard")
+        expect(updated_item.description).to eq("Best mechanical keyboard ever.")
+        expect(updated_item.unit_price).to eq(100.00)
+        expect(updated_item.merchant_id).to eq(merchant_id)
+    end
   end
 end
