@@ -12,12 +12,22 @@ class Api::V1::ItemsController < ApplicationController
   end
 
   def create
-    render json: ItemSerializer.new(Item.create((item_params))), status: 201
+    item = Item.new(item_params)
+    if item.save
+      render json: ItemSerializer.new(item), status: 201
+    else
+      render json: ErrorSerializer.serialize("No fields can be blank."), status: 400
+    end
   end
 
   def update
     if Item.exists?(params[:id])
-      render json: ItemSerializer.new(Item.update(params[:id], item_params))
+      item = Item.find(params[:id])
+      if item.update(item_params)
+        render json: ItemSerializer.new(item)
+      else
+        render json: ErrorSerializer.serialize("Failed to update item."), status: 400
+      end
     else
       render json: ErrorSerializer.serialize("Item not found."), status: 404
     end
