@@ -4,4 +4,8 @@ class Item < ApplicationRecord
   has_many :invoices, through: :invoice_items
   has_many :customers, through: :invoices
   has_many :transactions, through: :invoices
+
+  def self.items_search(keyword)
+    Item.where('name ILIKE ?', "%#{keyword}%").order(:name)
+  end
 end
