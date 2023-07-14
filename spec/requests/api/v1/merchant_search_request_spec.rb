@@ -21,4 +21,19 @@ describe "Merchant Search API" do
       expect(search_response[:attributes][:name]).to eq(merchant1.name)
     end
   end
+
+  describe "Sad Path" do
+    it "returns an error if the keyword does not match a name in the DB" do
+      get "/api/v1/merchants/find?name=billy"
+      expect(response).to_not be_successful
+      expect(response.status).to eq(404)
+
+      error = JSON.parse(response.body, symbolize_names: true)
+
+      expect(error).to have_key(:errors)
+      expect(error[:errors]).to be_an(Array)
+      expect(error[:errors][0]).to have_key(:detail)
+      expect(error[:errors][0][:detail]).to eq("No merchant found with name billy.")
+    end
+  end
 end
