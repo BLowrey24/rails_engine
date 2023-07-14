@@ -123,6 +123,28 @@ RSpec.describe "Items API" do
       expect(error[:errors][0][:detail]).to eq("Item not found.")
     end
 
+    it "cannot create an item with empty fields" do
+      merchant_id = create(:merchant).id
+      item_params = ({
+        name: "",
+        description: "Best mechanical keyboard ever.",
+        unit_price: 100.00,
+        merchant_id: merchant_id
+        })
+      header = {"CONTENT_TYPE" => "application/json"}
+
+      post "/api/v1/items", headers: header, params: JSON.generate(item: item_params)
+      expect(response).to_not be_successful
+      expect(response.status).to eq(400)
+
+      error = JSON.parse(response.body, symbolize_names: true)
+
+      expect(error).to have_key(:errors)
+      expect(error[:errors]).to be_an(Array)
+      expect(error[:errors][0]).to have_key(:detail)
+      expect(error[:errors][0][:detail]).to eq("No fields can be blank.")
+    end
+
     it "cannot update an item that does not exist" do
       merchant_id = create(:merchant).id
       item_params = ({
@@ -143,6 +165,28 @@ RSpec.describe "Items API" do
       expect(error[:errors]).to be_an(Array)
       expect(error[:errors][0]).to have_key(:detail)
       expect(error[:errors][0][:detail]).to eq("Item not found.")
+    end
+
+    it "returns a 400 error when the update fails" do
+      merchant_id = create(:merchant).id
+      item = create(:item, merchant_id: merchant_id)
+      invalid_params = {
+        name: nil,
+        description: "New description",
+        unit_price: 50.00
+      }
+      header = {"CONTENT_TYPE" => "application/json"}
+
+      patch "/api/v1/items/#{item.id}", headers: header, params: JSON.generate(item: invalid_params)
+      expect(response).to_not be_successful
+      expect(response.status).to eq(400)
+
+      error = JSON.parse(response.body, symbolize_names: true)
+
+      expect(error).to have_key(:errors)
+      expect(error[:errors]).to be_an(Array)
+      expect(error[:errors][0]).to have_key(:detail)
+      expect(error[:errors][0][:detail]).to eq("Failed to update item.")
     end
 
     it "cannot delete an item that does not exist" do
