@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe "Items Search API" do
-  describe 'happy path' do
+  describe 'Happy Path' do
     it 'returns all Items based on search criteria' do
       merchant_id = create(:merchant).id
 
@@ -40,6 +40,21 @@ RSpec.describe "Items Search API" do
       expect(search_response[:data][0][:attributes][:name]).to eq(item1.name)
       expect(search_response[:data][1][:attributes][:name]).to eq(item2.name)
       expect(search_response[:data][0][:attributes]).to_not include(item3.name)
+    end
+  end
+
+  describe "Sad Path" do
+    it "returns an error if the keyword does not math anything in the DB" do
+      get '/api/v1/items/find_all?name=nothing'
+      expect(response).to_not be_successful
+      expect(response.status).to eq(404)
+
+      error = JSON.parse(response.body, symbolize_names: true)
+
+      expect(error).to have_key(:errors)
+      expect(error[:errors]).to be_an(Array)
+      expect(error[:errors][0]).to have_key(:detail)
+      expect(error[:errors][0][:detail]).to eq("No items found with name nothing.")
     end
   end
 end
